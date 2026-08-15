@@ -1,103 +1,110 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>Bernadet WhatsApp Setup</title>
+<script>
+  window.fbAsyncInit = function() {
+    FB.init({
+      appId: '1462033702353611',
+      cookie: true,
+      xfbml: true,
+      version: 'v25.0'
+    });
 
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 60px;
+    document.getElementById("status").innerText =
+      "Facebook SDK loaded.";
+  };
+
+  (function(d, s, id) {
+    var js;
+    var fjs = d.getElementsByTagName(s)[0];
+
+    if (d.getElementById(id)) return;
+
+    js = d.createElement(s);
+    js.id = id;
+    js.src = "https://connect.facebook.net/en_US/sdk.js";
+
+    fjs.parentNode.insertBefore(js, fjs);
+  }(document, 'script', 'facebook-jssdk'));
+
+
+  // Receive Embedded Signup information from Meta
+  window.addEventListener("message", function(event) {
+
+    if (
+      event.origin !== "https://www.facebook.com" &&
+      event.origin !== "https://web.facebook.com"
+    ) {
+      return;
     }
 
-    button {
-      font-size: 18px;
-      padding: 14px 24px;
-      cursor: pointer;
-    }
+    try {
+      const data =
+        typeof event.data === "string"
+          ? JSON.parse(event.data)
+          : event.data;
 
-    #status {
-      margin-top: 25px;
-      white-space: pre-wrap;
-    }
-  </style>
-</head>
+      if (data.type !== "WA_EMBEDDED_SIGNUP") return;
 
-<body>
+      console.log("WA Embedded Signup:", data);
 
-  <h2>Bernadet WhatsApp Setup</h2>
+      if (
+        data.event === "FINISH" ||
+        data.event === "FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING"
+      ) {
 
-  <button onclick="launchWhatsAppSignup()">
-    Connect WhatsApp Business
-  </button>
+        document.getElementById("status").innerText =
+          "WhatsApp signup completed!\n\n" +
+          "WABA ID: " + (data.data.waba_id || "not returned") + "\n" +
+          "Phone Number ID: " +
+          (data.data.phone_number_id || "not returned");
 
-  <div id="status"></div>
+      } else {
 
-  <script>
-    window.fbAsyncInit = function() {
-
-      FB.init({
-        appId: '1462033702353611',
-        cookie: true,
-        xfbml: true,
-        version: 'v25.0'
-      });
-
-      document.getElementById("status").innerText =
-        "Facebook SDK loaded.";
-    };
-
-    (function(d, s, id) {
-
-      var js;
-      var fjs = d.getElementsByTagName(s)[0];
-
-      if (d.getElementById(id)) {
-        return;
+        document.getElementById("status").innerText =
+          "Embedded Signup event:\n" +
+          JSON.stringify(data, null, 2);
       }
 
-      js = d.createElement(s);
-      js.id = id;
-      js.src = "https://connect.facebook.net/en_US/sdk.js";
-
-      fjs.parentNode.insertBefore(js, fjs);
-
-    }(document, 'script', 'facebook-jssdk'));
-
-
-    function launchWhatsAppSignup() {
-
-      document.getElementById("status").innerText =
-        "Opening Meta Embedded Signup...";
-
-      FB.login(
-        function(response) {
-
-          console.log(response);
-
-          if (response.authResponse) {
-
-            document.getElementById("status").innerText =
-              "Facebook Login completed.\n\n" +
-              JSON.stringify(response, null, 2);
-
-          } else {
-
-            document.getElementById("status").innerText =
-              "Signup was cancelled or failed.";
-
-          }
-
-        },
-        {
-          config_id: '2914689352210009',
-          response_type: 'code',
-          override_default_response_type: true
-        }
-      );
+    } catch (error) {
+      console.log("Non-JSON Meta message:", event.data);
     }
-  </script>
 
-</body>
-</html>
+  });
+
+
+  function launchWhatsAppSignup() {
+
+    document.getElementById("status").innerText =
+      "Opening Meta Embedded Signup...";
+
+    FB.login(
+      function(response) {
+
+        console.log("Facebook Login response:", response);
+
+        if (response.authResponse?.code) {
+
+          // DON'T display the code publicly.
+          console.log(
+            "Authorization code received."
+          );
+
+        } else {
+
+          document.getElementById("status").innerText =
+            "Signup was cancelled or failed.";
+        }
+
+      },
+      {
+        config_id: '2914689352210009',
+
+        response_type: 'code',
+        override_default_response_type: true,
+
+        extras: {
+          setup: {},
+          sessionInfoVersion: '3'
+        }
+      }
+    );
+  }
+</script>
