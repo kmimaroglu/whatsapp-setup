@@ -118,4 +118,45 @@
       }
     );
   }
+
+  async function sendCodeToBackend(code) {
+
+  const backendUrl =
+    "YOUR_APPS_SCRIPT_WEB_APP_URL";
+
+  try {
+
+    const response = await fetch(backendUrl, {
+      method: "POST",
+
+      headers: {
+        "Content-Type": "text/plain"
+      },
+
+      body: JSON.stringify({
+        code: code
+      })
+    });
+
+    const data = await response.json();
+
+    console.log("Backend response:", data);
+
+    if (!data.ok) {
+      throw new Error(data.error);
+    }
+
+    document.getElementById("status").innerText =
+      "SUCCESS!\n\n" +
+      "Meta business token received by backend.";
+
+  } catch (error) {
+
+    console.error(error);
+
+    document.getElementById("status").innerText =
+      "Backend error:\n" +
+      error.message;
+  }
+}
 </script>
