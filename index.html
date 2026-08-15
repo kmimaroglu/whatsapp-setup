@@ -60,7 +60,18 @@
 
         document.getElementById("status").innerText =
           "Embedded Signup event:\n" +
-          JSON.stringify(data, null, 2);
+          if (response.authResponse?.code) {
+
+  document.getElementById("status").innerText =
+    "Meta authorization completed.\nExchanging code...";
+
+  sendCodeToBackend(response.authResponse.code);
+
+} else {
+
+  document.getElementById("status").innerText =
+    "Signup was cancelled or failed.";
+}
       }
 
     } catch (error) {
