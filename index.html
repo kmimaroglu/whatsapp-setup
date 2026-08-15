@@ -1,162 +1,212 @@
-<script>
-  window.fbAsyncInit = function() {
-    FB.init({
-      appId: '1462033702353611',
-      cookie: true,
-      xfbml: true,
-      version: 'v25.0'
-    });
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    document.getElementById("status").innerText =
-      "Facebook SDK loaded.";
-  };
+  <title>Bernadet WhatsApp Setup</title>
 
-  (function(d, s, id) {
-    var js;
-    var fjs = d.getElementsByTagName(s)[0];
-
-    if (d.getElementById(id)) return;
-
-    js = d.createElement(s);
-    js.id = id;
-    js.src = "https://connect.facebook.net/en_US/sdk.js";
-
-    fjs.parentNode.insertBefore(js, fjs);
-  }(document, 'script', 'facebook-jssdk'));
-
-
-  // Receive Embedded Signup information from Meta
-  window.addEventListener("message", function(event) {
-
-    if (
-      event.origin !== "https://www.facebook.com" &&
-      event.origin !== "https://web.facebook.com"
-    ) {
-      return;
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 700px;
+      margin: 60px auto;
+      padding: 20px;
+      text-align: center;
     }
 
-    try {
-      const data =
-        typeof event.data === "string"
-          ? JSON.parse(event.data)
-          : event.data;
+    button {
+      font-size: 18px;
+      padding: 14px 24px;
+      cursor: pointer;
+    }
 
-      if (data.type !== "WA_EMBEDDED_SIGNUP") return;
+    #status {
+      margin-top: 25px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+  </style>
+</head>
 
-      console.log("WA Embedded Signup:", data);
+<body>
 
-      if (
-        data.event === "FINISH" ||
-        data.event === "FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING"
-      ) {
+  <h1>Bernadet WhatsApp Setup</h1>
 
-        document.getElementById("status").innerText =
-          "WhatsApp signup completed!\n\n" +
-          "WABA ID: " + (data.data.waba_id || "not returned") + "\n" +
-          "Phone Number ID: " +
-          (data.data.phone_number_id || "not returned");
+  <p>
+    Connect the Bernadet WhatsApp Business account to EventMessenger.
+  </p>
 
-      } else {
+  <button onclick="launchWhatsAppSignup()">
+    Connect WhatsApp Business
+  </button>
 
-        document.getElementById("status").innerText =
-          "Embedded Signup event:\n" +
-          if (response.authResponse?.code) {
+  <div id="status"></div>
 
-  document.getElementById("status").innerText =
-    "Meta authorization completed.\nExchanging code...";
 
-  sendCodeToBackend(response.authResponse.code);
+  <script>
 
-} else {
+    /************************************************************
+     * SETTINGS
+     ************************************************************/
 
-  document.getElementById("status").innerText =
-    "Signup was cancelled or failed.";
-}
+    const META_APP_ID = "1462033702353611";
+
+    const CONFIG_ID = "2914689352210009";
+
+    const APPS_SCRIPT_URL =
+      "YOUR_APPS_SCRIPT_WEB_APP_URL";
+
+
+    /************************************************************
+     * LOAD FACEBOOK SDK
+     ************************************************************/
+
+    window.fbAsyncInit = function () {
+
+      FB.init({
+        appId: META_APP_ID,
+        cookie: true,
+        xfbml: true,
+        version: "v25.0"
+      });
+
+      console.log("Facebook SDK initialized.");
+    };
+
+
+    (function (d, s, id) {
+
+      let js;
+      const fjs = d.getElementsByTagName(s)[0];
+
+      if (d.getElementById(id)) {
+        return;
       }
 
-    } catch (error) {
-      console.log("Non-JSON Meta message:", event.data);
-    }
+      js = d.createElement(s);
+      js.id = id;
 
-  });
+      js.src =
+        "https://connect.facebook.net/en_US/sdk.js";
+
+      fjs.parentNode.insertBefore(js, fjs);
+
+    }(document, "script", "facebook-jssdk"));
 
 
-  function launchWhatsAppSignup() {
+    /************************************************************
+     * START WHATSAPP EMBEDDED SIGNUP
+     ************************************************************/
 
-    document.getElementById("status").innerText =
-      "Opening Meta Embedded Signup...";
+    function launchWhatsAppSignup() {
 
-    FB.login(
-      function(response) {
+      document.getElementById("status").innerText =
+        "Opening Meta signup...";
 
-        console.log("Facebook Login response:", response);
+      FB.login(
+        function (response) {
 
-        if (response.authResponse?.code) {
-
-          // DON'T display the code publicly.
           console.log(
-            "Authorization code received."
+            "Facebook Login Response:",
+            response
           );
 
-        } else {
+          if (
+            response.authResponse &&
+            response.authResponse.code
+          ) {
 
-          document.getElementById("status").innerText =
-            "Signup was cancelled or failed.";
+            const code =
+              response.authResponse.code;
+
+            document.getElementById("status").innerText =
+              "WhatsApp authorization successful.\n\n" +
+              "Sending authorization code to Apps Script...";
+
+            sendCodeToAppsScript(code);
+
+          } else {
+
+            document.getElementById("status").innerText =
+              "WhatsApp authorization was cancelled or failed.";
+
+            console.log(
+              "Login failed:",
+              response
+            );
+          }
+        },
+
+        {
+          config_id: CONFIG_ID,
+
+          response_type: "code",
+
+          override_default_response_type: true,
+
+          extras: {
+            setup: {},
+            featureType: "",
+            sessionInfoVersion: "3"
+          }
         }
-
-      },
-      {
-        config_id: '2914689352210009',
-
-        response_type: 'code',
-        override_default_response_type: true,
-
-        extras: {
-          setup: {},
-          sessionInfoVersion: '3'
-        }
-      }
-    );
-  }
-
-  async function sendCodeToBackend(code) {
-
-  const backendUrl =
-    "YOUR_APPS_SCRIPT_WEB_APP_URL";
-
-  try {
-
-    const response = await fetch(backendUrl, {
-      method: "POST",
-
-      headers: {
-        "Content-Type": "text/plain"
-      },
-
-      body: JSON.stringify({
-        code: code
-      })
-    });
-
-    const data = await response.json();
-
-    console.log("Backend response:", data);
-
-    if (!data.ok) {
-      throw new Error(data.error);
+      );
     }
 
-    document.getElementById("status").innerText =
-      "SUCCESS!\n\n" +
-      "Meta business token received by backend.";
 
-  } catch (error) {
+    /************************************************************
+     * SEND AUTHORIZATION CODE TO APPS SCRIPT
+     ************************************************************/
 
-    console.error(error);
+    function sendCodeToAppsScript(code) {
 
-    document.getElementById("status").innerText =
-      "Backend error:\n" +
-      error.message;
-  }
-}
-</script>
+      fetch(APPS_SCRIPT_URL, {
+
+        method: "POST",
+
+        headers: {
+          "Content-Type": "text/plain;charset=utf-8"
+        },
+
+        body: JSON.stringify({
+          action: "metaAuthorization",
+          code: code
+        })
+
+      })
+
+      .then(function (response) {
+        return response.text();
+      })
+
+      .then(function (result) {
+
+        console.log(
+          "Apps Script response:",
+          result
+        );
+
+        document.getElementById("status").innerText =
+          "Connected successfully!\n\n" +
+          result;
+      })
+
+      .catch(function (error) {
+
+        console.error(
+          "Apps Script error:",
+          error
+        );
+
+        document.getElementById("status").innerText =
+          "Authorization succeeded, but sending the code " +
+          "to Apps Script failed.\n\n" +
+          error;
+      });
+    }
+
+  </script>
+
+</body>
+</html>
