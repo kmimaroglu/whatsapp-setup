@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Bernadet WhatsApp Setup</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 60px;
+    }
+
+    button {
+      font-size: 18px;
+      padding: 14px 24px;
+      cursor: pointer;
+    }
+
+    #status {
+      margin-top: 25px;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h2>Bernadet WhatsApp Setup</h2>
+
+  <button onclick="launchWhatsAppSignup()">
+    Connect WhatsApp Business
+  </button>
+
+  <div id="status"></div>
+
+  <script>
+    window.fbAsyncInit = function() {
+
+      FB.init({
+        appId: '1462033702353611',
+        cookie: true,
+        xfbml: true,
+        version: 'v25.0'
+      });
+
+      document.getElementById("status").innerText =
+        "Facebook SDK loaded.";
+    };
+
+    (function(d, s, id) {
+
+      var js;
+      var fjs = d.getElementsByTagName(s)[0];
+
+      if (d.getElementById(id)) {
+        return;
+      }
+
+      js = d.createElement(s);
+      js.id = id;
+      js.src = "https://connect.facebook.net/en_US/sdk.js";
+
+      fjs.parentNode.insertBefore(js, fjs);
+
+    }(document, 'script', 'facebook-jssdk'));
+
+
+    function launchWhatsAppSignup() {
+
+      document.getElementById("status").innerText =
+        "Opening Meta Embedded Signup...";
+
+      FB.login(
+        function(response) {
+
+          console.log(response);
+
+          if (response.authResponse) {
+
+            document.getElementById("status").innerText =
+              "Facebook Login completed.\n\n" +
+              JSON.stringify(response, null, 2);
+
+          } else {
+
+            document.getElementById("status").innerText =
+              "Signup was cancelled or failed.";
+
+          }
+
+        },
+        {
+          config_id: '2914689352210009',
+          response_type: 'code',
+          override_default_response_type: true
+        }
+      );
+    }
+  </script>
+
+</body>
+</html>
